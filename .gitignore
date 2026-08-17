@@ -196,3 +196,4 @@ uncaughtExeptionLog.data
 notes.md
 
 # End of https://www.gitignore.io/api/node,linux,macos,windows,visualstudiocode
+node_modules
