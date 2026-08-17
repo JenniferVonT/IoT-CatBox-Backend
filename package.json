@@ -1,0 +1,34 @@
+{
+  "name": "iot_backend",
+  "version": "1.0.0",
+  "description": "The backend server subscribes to the MQTT broker and exposes telemetry data via a REST API.",
+  "license": "MIT",
+  "author": "Jennifer von Trotta-Treyden <jv222th>",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node --env-file=.env src/server.js",
+    "dev": "nodemon --inspect --env-file=.env src/server.js",
+    "lint": "npx eslint ./src || exit 0",
+    "lint:fix": "npx eslint ./src --fix || exit 0"
+  },
+  "devDependencies": {
+    "@lnu/eslint-config": "^1.1.10",
+    "dotenv": "^16.4.5",
+    "eslint": "^8.57.0",
+    "eslint-plugin-import": "^2.29.1",
+    "nodemon": "^3.1.0"
+  },
+  "dependencies": {
+    "@lnu/json-js-cycle": "^2.0.5",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-http-context": "^1.2.4",
+    "helmet": "^7.1.0",
+    "http-errors": "^2.0.0",
+    "mongoose": "^9.9.2",
+    "morgan": "^1.10.0",
+    "mqtt": "^5.0.0",
+    "winston": "^3.13.0"
+  }
+}
