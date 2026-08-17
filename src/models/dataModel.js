@@ -38,10 +38,6 @@ const schema = new mongoose.Schema({
     required: true,
     trim: true,
     default: 'ta/sht30'
-  },
-  raw: {
-    type: mongoose.Schema.Types.Mixed,
-    default: null
   }
 })
 

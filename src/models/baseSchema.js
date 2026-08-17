@@ -15,15 +15,13 @@ const convertOptions = {
   /**
    * Transforms the document, removing the _id property.
    *
-   * @param {object} doc - The mongoose document which is being converted.
+   * @param {object} _doc - The mongoose document which is being converted.
    * @param {object} ret - The plain object representation which has been converted.
    * @returns {object} The transformed object.
    * @see https://mongoosejs.com/docs/api.html#document_Document-toObject
    */
-  transform: (doc, ret) => {
-    logger.silly('Transforming document', { doc: doc.toObject({ transform: null }) })
+  transform: (_doc, ret) => {
     delete ret._id // Exclude the _id property.
-    logger.silly('Transformed document', { ret })
     return ret
   }
 }

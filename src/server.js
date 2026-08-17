@@ -15,6 +15,7 @@ import http from 'node:http'
 import { connectToDatabase } from './config/mongoose.js'
 import { morganLogger } from './config/morgan.js'
 import { logger } from './config/winston.js'
+import { startMqttClient } from './config/mqtt.js'
 import { router } from './routes/router.js'
 
 try {
@@ -40,6 +41,9 @@ try {
 
   // Use a morgan logger.
   app.use(morganLogger)
+
+  // Start the MQTT client so we subscribe to telemetry as soon as the app boots.
+  await startMqttClient()
 
   // Middleware to be executed before the routes.
   app.use((req, res, next) => {

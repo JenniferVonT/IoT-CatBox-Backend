@@ -11,15 +11,17 @@ const normalizePayload = (topic, payload) => {
     const parsed = JSON.parse(payloadString)
     const temperature = Number.parseFloat(parsed.temperature ?? parsed.temp)
     const humidity = Number.parseFloat(parsed.humidity)
-    const timestamp = parsed.timestamp ? new Date(parsed.timestamp) : new Date()
+    const rawTimestamp = Number(parsed.timestamp)
+    const timestamp = Number.isFinite(rawTimestamp)
+      ? new Date(rawTimestamp * 1000)
+      : new Date()
 
     return {
       topic,
       temperature: Number.isFinite(temperature) ? temperature : null,
       humidity: Number.isFinite(humidity) ? humidity : null,
       device: parsed.device ?? 'unknown',
-      timestamp,
-      raw: parsed
+      timestamp
     }
   } catch {
     return {
@@ -27,8 +29,7 @@ const normalizePayload = (topic, payload) => {
       temperature: null,
       humidity: null,
       device: 'unknown',
-      timestamp: new Date(),
-      raw: payloadString
+      timestamp: new Date()
     }
   }
 }
@@ -57,7 +58,7 @@ export const getTelemetryHistory = async () => {
 
 export const startMqttClient = async () => {
   const brokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://localhost:1883'
-  const topic = process.env.MQTT_TOPIC || 'data/sht30'
+  const topic = process.env.MQTT_TOPIC || 'ta/sht30'
   const username = process.env.MQTT_USERNAME
   const password = process.env.MQTT_PASSWORD
 
@@ -97,8 +98,9 @@ export const startMqttClient = async () => {
 
     try {
       const saved = await DataModel.create(reading)
-      console.log('MongoDB document created:', saved.toObject())
-      logger.info(`MQTT message received and stored on ${messageTopic}`, { metadata: saved.toObject() })
+      const safeSaved = saved.toObject({ transform: false })
+      console.log('MongoDB document created:', safeSaved)
+      logger.info(`MQTT message received and stored on ${messageTopic}`, { metadata: safeSaved })
     } catch (error) {
       console.log('MongoDB insert failed:', error)
       logger.error('Unable to persist MQTT reading to MongoDB.', { error, metadata: reading })
