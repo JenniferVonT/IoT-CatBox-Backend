@@ -70,12 +70,18 @@ async history (req, res, next) {
     // Fetch historical data from the database based on the filter and limit.
     const history = await DataModel
       .find(filter)
-      .sort({ timestamp: -1 })
+      .sort({ timestamp: 1 })
       .limit(limit)
       .lean()
 
+    // Fetch the earliest and latest timestamps for the filtered data.
+    const earliest = await DataModel.findOne(filter).sort({ timestamp: 1 }).lean()
+    const latest = await DataModel.findOne(filter).sort({ timestamp: -1 }).lean()
+
     return res.status(200).json({
       count: history.length,
+      earliestTimestamp: earliest?.timestamp ?? null,
+      latestTimestamp: latest?.timestamp ?? null,
       history: history.map((entry) => ({
         ...entry,
         receivedAt: entry.timestamp
