@@ -39,30 +39,113 @@ export class MainController {
   }
 
   /**
-   * Returns the latest 50 telemetry payloads.
+   * Returns historical telemetry payloads.
    * 
    * @param {Object} req - The request object.
    * @param {Object} res - The response object.
    * @param {Function} next - The next middleware function.
    */
-  async history (req, res, next) {
-    try {
-      // Parse the limit from the query parameters, defaulting to 50 if not provided
-      const limit = parseInt(req.query.limit, 10) || 50
+async history (req, res, next) {
+  try {
+    const limit = parseInt(req.query.limit, 10) || 50
 
-      const history = await DataModel.find({}).sort({ createdAt: -1 }).limit(limit).lean()
+    const start = req.query.start ? new Date(req.query.start) : null
+    const end = req.query.end ? new Date(req.query.end) : null
+
+    const filter = {}
+
+    // Apply date range filter if start or end is provided
+    if (start || end) {
+      filter.timestamp = {}
+
+      if (start) {
+        filter.timestamp.$gte = start
+      }
+
+      if (end) {
+        filter.timestamp.$lte = end
+      }
+    }
+
+    // Fetch historical data from the database based on the filter and limit.
+    const history = await DataModel
+      .find(filter)
+      .sort({ timestamp: -1 })
+      .limit(limit)
+      .lean()
+
+    return res.status(200).json({
+      count: history.length,
+      history: history.map((entry) => ({
+        ...entry,
+        receivedAt: entry.timestamp
+      }))
+    })
+  } catch (error) {
+    const err = new Error('Unable to read telemetry history.')
+    err.status = 500
+    err.cause = error
+    return next(err)
+  }
+}
+
+  /**
+   * Returns a summary of the telemetry data.
+   * 
+   * @param {Object} req - The request object.
+   * @param {Object} res - The response object.
+   * @param {Function} next - The next middleware function.
+   */
+  async summary (req, res, next) {
+    try {
+      const maxTemp = await DataModel.findOne({}).sort({ temperature: -1 }).lean()
+      const minTemp = await DataModel.findOne({}).sort({ temperature: 1 }).lean()
+      const maxHumidity = await DataModel.findOne({}).sort({ humidity: -1 }).lean()
+      const minHumidity = await DataModel.findOne({}).sort({ humidity: 1 }).lean()
+      const avgTemp = await DataModel.aggregate([
+        { $group: { _id: null, avgTemperature: { $avg: '$temperature' } } }
+      ])
+      const avgHumidity = await DataModel.aggregate([
+        { $group: { _id: null, avgHumidity: { $avg: '$humidity' } } }
+      ])
+
+      const visits = await this.calculateVisits()
+
       return res.status(200).json({
-        count: history.length,
-        history: history.map((entry) => ({
-          ...entry,
-          receivedAt: entry.timestamp ?? entry.createdAt
-        }))
+        maxTemp: maxTemp?.temperature ?? null,
+        minTemp: minTemp?.temperature ?? null,
+        avgTemp: avgTemp[0]?.avgTemperature ?? null,
+        maxHumidity: maxHumidity?.humidity ?? null,
+        minHumidity: minHumidity?.humidity ?? null,
+        avgHumidity: avgHumidity[0]?.avgHumidity ?? null,
+        visits
       })
     } catch (error) {
-      const err = new Error('Unable to read telemetry history.')
+      const err = new Error('Unable to read telemetry summary.')
       err.status = 500
       err.cause = error
       return next(err)
+    }
+  }
+
+  /**
+   * 
+   * Calculate the number of litter box visits based on the humidity readings. 
+   * A visit is defined as a period where the humidity exceeds a certain threshold, indicating that the litter box has been used.
+   *
+   */
+  async calculateVisits () {
+    try {
+
+      // TO-DO: Implement the logic to calculate the number of litter box visits based on humidity readings. 
+      // Wait for a testing period to determine the threshold and duration for a visit. For now, we will return a placeholder value.
+      const visits = 10
+      return visits
+    } catch (error) {
+      const err = new Error('Unable to calculate litter box visits.')
+      err.status = 500
+      err.cause = error
+      throw err
     }
   }
 }

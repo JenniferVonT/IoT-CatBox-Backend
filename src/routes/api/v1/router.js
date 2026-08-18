@@ -37,6 +37,16 @@ const startMessage = {
           name: "limit",
           value: "int",
           description: "Limits the amount of results given, any limit"
+        },
+        1: {
+          name: "start",
+          value: "timestamp",
+          description: "The start timestamp for the date range filter"
+        },
+        2: {
+          name: "end",
+          value: "timestamp",
+          description: "The end timestamp for the date range filter"
         }
       }
     }
@@ -55,3 +65,4 @@ router.use(auth)
 router.get('/health', (req, res) => res.json({ status: 'ok' }))
 router.get('/telemetry/latest', (req, res, next) => controller.latest(req, res, next))
 router.get('/telemetry/history', (req, res, next) => controller.history(req, res, next))
+router.get('/telemetry/summary', (req, res, next) => controller.summary(req, res, next))
