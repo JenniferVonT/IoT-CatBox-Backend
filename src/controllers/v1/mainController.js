@@ -115,43 +115,19 @@ async history (req, res, next) {
         { $group: { _id: null, avgHumidity: { $avg: '$humidity' } } }
       ])
 
-      const visits = await this.calculateVisits()
-
       return res.status(200).json({
         maxTemp: maxTemp?.temperature ?? null,
         minTemp: minTemp?.temperature ?? null,
         avgTemp: avgTemp[0]?.avgTemperature ?? null,
         maxHumidity: maxHumidity?.humidity ?? null,
         minHumidity: minHumidity?.humidity ?? null,
-        avgHumidity: avgHumidity[0]?.avgHumidity ?? null,
-        visits
+        avgHumidity: avgHumidity[0]?.avgHumidity ?? null
       })
     } catch (error) {
       const err = new Error('Unable to read telemetry summary.')
       err.status = 500
       err.cause = error
       return next(err)
-    }
-  }
-
-  /**
-   * 
-   * Calculate the number of litter box visits based on the humidity readings. 
-   * A visit is defined as a period where the humidity exceeds a certain threshold, indicating that the litter box has been used.
-   *
-   */
-  async calculateVisits () {
-    try {
-
-      // TO-DO: Implement the logic to calculate the number of litter box visits based on humidity readings. 
-      // Wait for a testing period to determine the threshold and duration for a visit. For now, we will return a placeholder value.
-      const visits = 10
-      return visits
-    } catch (error) {
-      const err = new Error('Unable to calculate litter box visits.')
-      err.status = 500
-      err.cause = error
-      throw err
     }
   }
 }
