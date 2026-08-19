@@ -70,9 +70,11 @@ async history (req, res, next) {
     // Fetch historical data from the database based on the filter and limit.
     const history = await DataModel
       .find(filter)
-      .sort({ timestamp: 1 })
+      .sort({ timestamp: -1 })
       .limit(limit)
       .lean()
+
+      history.reverse() // Reverse the order to have the oldest first and the newest last.  
 
     // Fetch the earliest and latest timestamps for the filtered data.
     const earliest = await DataModel.findOne(filter).sort({ timestamp: 1 }).lean()
